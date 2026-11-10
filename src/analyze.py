@@ -11,6 +11,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 import pandas as pd
 import numpy as np
 
@@ -116,6 +117,15 @@ def business_tables(f, order_level):
 
 def make_charts(order_level, delivered, monthly, category, customer, out_dir):
     plt.style.use("seaborn-v0_8-whitegrid")
+    # 설치된 한글 글꼴을 선택해 그래프 제목과 축의 한글 깨짐을 방지합니다.
+    fonts = {font.name for font in font_manager.fontManager.ttflist}
+    for name in ("Malgun Gothic", "AppleGothic", "NanumGothic", "Noto Sans CJK KR", "Noto Sans KR"):
+        if name in fonts:
+            plt.rcParams["font.family"] = name
+            break
+    else:
+        print("주의: 한글 글꼴을 찾지 못했습니다. 그래프의 한글이 깨질 수 있습니다.")
+    plt.rcParams["axes.unicode_minus"] = False
     def save(name):
         plt.tight_layout()
         plt.savefig(out_dir / name, dpi=150, bbox_inches="tight")
