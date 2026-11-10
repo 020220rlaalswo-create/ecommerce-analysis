@@ -1,6 +1,6 @@
-# Olist E-commerce Analytics | 이커머스 데이터 분석 포트폴리오
+# Olist 이커머스 데이터 분석 포트폴리오
 
-**SQL + Python / Pandas + Matplotlib | Data Cleaning → KPI → Visualization → Business Interpretation**
+**SQL + Python / Pandas + Matplotlib | 데이터 정제 → 핵심 성과 지표 → 시각화 → 비즈니스 해석**
 
 브라질 Olist 익명화 주문 데이터를 사용해 **매출, 주문, 배송 품질, 만족도 및 재구매**를 분석하는 재현 가능한 개인 프로젝트입니다.
 
@@ -11,7 +11,7 @@
 - 관측된 기간 내 고유 고객의 재구매 패턴은 어떤가?
 
 ## 데이터
-공식 출처: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (2016–2018, anonymized, **CC BY-NC-SA 4.0**).
+공식 출처: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (2016~2018년 익명화 데이터, **CC BY-NC-SA 4.0**).
 
 원본 CSV는 리포지토리에 포함하지 않으며 `data/README.md`에 9개 파일 다운로드 및 라이선스를 안내합니다. 기본 분석에 필요한 것은 8개 CSV로, 지리좌표 파일은 선택 사항입니다.
 
@@ -33,7 +33,7 @@ python src/analyze.py --data-dir data/raw --out-dir outputs
 | `sql/analysis.sql` | MySQL 8.0 주문 단위/매출/재구매/리뷰 질의 |
 | `docs/INSIGHTS.md` | KPI 정의, 해석 가이드, 비즈니스 제안과 한계 |
 | `data/README.md` | 데이터 출처, 재현 방법, 라이선스 |
-| `outputs/` | 로컬 실행으로 생성되는 차트와 요약 (gitignored) |
+| `outputs/` | 로컬 실행으로 생성되는 차트와 요약 (Git 추적 제외) |
 
 ## 분석 설계상 핵심 사항
 1. `order_items`, `order_payments`, `order_reviews`를 먼저 주문 단위로 집계하여 **1:N×1:N 조인으로 매출이 중복되는 문제 방지**.
@@ -56,8 +56,8 @@ python src/analyze.py --data-dir data/raw --out-dir outputs
 
 **주의:** 본 저장소에 추정 결과나 임의의 KPI 수치를 실제 계산값처럼 넣지 않았습니다. 원본 데이터를 배치해 파이프라인을 실행한 뒤 `docs/INSIGHTS.md`에 관측된 값을 추가하세요.
 
-## Tech Stack
+## 사용 기술
 MySQL 8.0, Python 3.10+, pandas, NumPy, Matplotlib, Seaborn
 
 ---
-Data credit: Olist / Kaggle. Non-commercial educational analysis, original dataset licensed CC BY-NC-SA 4.0.
+데이터 제공: Olist / Kaggle. 비상업적 교육용 분석이며 원본 데이터 라이선스는 CC BY-NC-SA 4.0입니다.
