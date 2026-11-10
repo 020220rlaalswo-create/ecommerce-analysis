@@ -4,14 +4,51 @@
 
 브라질 Olist 익명화 주문 데이터를 사용해 **매출, 주문, 배송 품질, 만족도 및 재구매**를 분석하는 재현 가능한 개인 프로젝트입니다.
 
-## 실제 분석 결과 및 그래프
+## 실제 데이터 분석 결과
 
-GitHub Actions가 공개 Olist 데이터를 내려받아 분석을 실행하고 검증에 통과하면 아래 보고서와 PNG 이미지가 **자동으로 생성되어 이 작업 브랜치에 게시됩니다.**
+Olist 원본 CSV를 사용하여 GitHub Actions에서 분석을 실행했고, 주문 단위 중복 검증·매출 대조·지표 범위 검증을 통과했습니다.
 
-- [실측 KPI와 한국어 그래프 7종 보기](reports/README.md)
-- [자동 분석 및 검증 워크플로](.github/workflows/olist-analysis.yml)
+| 핵심 지표 | 실제 분석값 |
+|---|---:|
+| 전체 주문 | **99,441건** |
+| 배송 완료 주문 | **96,478건** |
+| 배송 완료 주문의 고유 고객 | **93,358명** |
+| 배송 완료 상품 매출 (배송비 제외) | **13,221,498.11 BRL** |
+| 평균 배송 소요일 | **12.56일** |
+| 배송 지연율 | **8.11%** (96,470건 기준) |
+| 관측 기간 재구매 고객 비율 | **3.00%** (93,358명 기준) |
 
-> **주의:** 아직 첫 실행 성공 여부를 확인하기 전에는 위 보고서 링크에 파일이 없을 수 있습니다. 그 경우 자동 실행 로그를 확인해야 합니다.
+> 상품 매출은 배송 완료 주문의 상품 가격 합계로, 회계상 확정 순매출이나 이익과 다릅니다. 재구매율은 관측 기간 내 비율입니다.
+
+### 1. 월별 상품 매출
+
+![월별 상품 매출](reports/01_monthly_revenue.png)
+
+### 2. 매출 상위 상품 카테고리
+
+![매출 상위 상품 카테고리](reports/02_category_revenue.png)
+
+### 3. 전체 주문 처리 상태
+
+![전체 주문 처리 상태](reports/03_order_status.png)
+
+### 4. 배송 소요일 분포
+
+![배송 소요일 분포](reports/04_delivery_days.png)
+
+### 5. 지역별 배송 지연율
+
+![지역별 배송 지연율](reports/05_late_delivery_states.png)
+
+### 6. 관측 기간 고객 재구매 분포
+
+![고객 재구매 분포](reports/06_repeat_customers.png)
+
+### 7. 배송 지연 여부에 따른 평균 리뷰 점수
+
+![배송 지연과 리뷰 점수](reports/07_review_vs_lateness.png)
+
+**[전체 분석 결과 보고서 보기](reports/README.md)** · **[Python 분석 코드 보기](src/analyze.py)** · **[SQL 분석 코드 보기](sql/analysis.sql)**
 
 ## 문제 정의
 - 어떤 카테고리와 시기에 판매가 집중되는가?
@@ -52,18 +89,9 @@ python src/analyze.py --data-dir data/raw --out-dir outputs
 5. 실제 클릭·방문·장바구니 로그가 없어 **방문→구매 퍼널 분석은 불가능**하다는 한계 명시.
 6. 2018년 이후 관측 부재와 관측 길이의 차이 때문에 재구매율을 장기 고객 유지율로 해석하지 않음.
 
-## 시각화
-실제 데이터 실행 후 아래 파일이 생성됩니다.
+## 그래프 및 재현 방법
+위의 7개 그래프는 [reports/](reports/)에 저장된 실제 생성 이미지입니다. 분석을 재실행하려면 원본 Olist CSV를 `data/raw/`에 배치하고 `python src/analyze.py`를 실행하세요.
 
-- `01_monthly_revenue.png` 월별 판매
-- `02_category_revenue.png` 카테고리 매출
-- `03_order_status.png` 주문 상태
-- `04_delivery_days.png` 배송기간
-- `05_late_delivery_states.png` 주별 배송지연
-- `06_repeat_customers.png` 고유 고객 재구매
-- `07_review_vs_lateness.png` 배송지연·평점 비교
-
-**주의:** 본 저장소에 추정 결과나 임의의 KPI 수치를 실제 계산값처럼 넣지 않았습니다. 원본 데이터를 배치해 파이프라인을 실행한 뒤 `docs/INSIGHTS.md`에 관측된 값을 추가하세요.
 
 ## 사용 기술
 MySQL 8.0, Python 3.10+, pandas, NumPy, Matplotlib, Seaborn
