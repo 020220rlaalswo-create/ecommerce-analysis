@@ -2,7 +2,7 @@ name: Olist 실데이터 분석 및 결과 검증
 
 on:
   push:
-    branches: [feature/olist-complete-portfolio]
+    branches: [main]
     paths:
       - 'src/**'
       - 'requirements.txt'
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
