@@ -1,9 +1,9 @@
-# 데이터 출처 / Dataset
+# 데이터셋 출처 및 사용 안내
 - 원본: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 - 제공: Olist, 2016–2018 브라질 익명화 주문 데이터
 - 라이선스: CC BY-NC-SA 4.0 (비영리 이용, 저작자표시, 동일조건변경허락)
-- 원본 파일은 이 저장소에 재배포하지 않습니다. 원본 출처에서 9개 CSV를 내려받아 **data/raw/** 아래에 저장하세요.
-- 필수 파일: olist_orders_dataset.csv, olist_customers_dataset.csv, olist_order_items_dataset.csv, olist_order_payments_dataset.csv, olist_order_reviews_dataset.csv, olist_products_dataset.csv, olist_sellers_dataset.csv, product_category_name_translation.csv.
+- 원본 파일은 저장소에 재배포하지 않습니다. 원본 출처에서 CSV를 내려받아 **data/raw/** 아래에 저장하세요. 기본 실행에는 아래 8개 파일이 필요합니다.
+- 필수 파일: olist_orders_dataset.csv, olist_customers_dataset.csv, olist_order_items_dataset.csv, olist_order_payments_dataset.csv, olist_order_reviews_dataset.csv, olist_products_dataset.csv, product_category_name_translation.csv.
 - 위치 좌표 분석은 추가로 olist_geolocation_dataset.csv를 사용하며 현재 기본 분석에서는 사용하지 않습니다.
 
 ## 주의
