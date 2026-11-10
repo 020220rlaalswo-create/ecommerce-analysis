@@ -1,8 +1,8 @@
-"""Reproducible Olist customer, sales, payment and delivery analysis.
+"""Olist 고객·매출·결제·배송 분석을 재현하는 실행 스크립트.
 
-Usage: python src/analyze.py --data-dir data/raw --out-dir outputs
-Outputs: order_level.csv, monthly_sales.csv, category_sales.csv,
-         customer_rfm.csv, kpis.json and seven PNG charts.
+실행 방법: python src/analyze.py --data-dir data/raw --out-dir outputs
+생성 파일: order_level.csv, monthly_sales.csv, category_sales.csv,
+         customer_rfm.csv, kpis.json 및 PNG 그래프 7개.
 """
 import argparse
 import json
@@ -31,14 +31,14 @@ DATES = ["order_purchase_timestamp", "order_approved_at",
 def load(data_dir):
     missing = [f for f in FILES.values() if not (data_dir / f).is_file()]
     if missing:
-        raise FileNotFoundError("Missing CSV files: " + ", ".join(missing))
+        raise FileNotFoundError("필요한 CSV 파일이 없습니다: " + ", ".join(missing))
     frames = {k: pd.read_csv(data_dir / file) for k, file in FILES.items()}
     for col in DATES:
         frames["orders"][col] = pd.to_datetime(frames["orders"][col], errors="coerce")
     if frames["orders"]["order_id"].duplicated().any():
-        raise ValueError("order_id must be unique in orders")
+        raise ValueError("orders 테이블의 order_id는 고유해야 합니다")
     if frames["customers"]["customer_id"].duplicated().any():
-        raise ValueError("customer_id must be unique in customers")
+        raise ValueError("customers 테이블의 customer_id는 고유해야 합니다")
     return frames
 
 
@@ -47,7 +47,7 @@ def prepare(frames):
         frames["customers"][["customer_id", "customer_unique_id", "customer_state"]],
         on="customer_id", how="left", validate="many_to_one"
     )
-    # Items and payments are one-to-many relative to orders.
+    # 주문에 여러 상품과 결제가 연결되므로 주문 단위로 먼저 집계합니다.
     item_agg = frames["items"].groupby("order_id", as_index=False).agg(
         item_count=("order_item_id", "count"),
         item_revenue=("price", "sum"),
@@ -57,7 +57,7 @@ def prepare(frames):
         payment_total=("payment_value", "sum"),
         payment_records=("payment_value", "size")
     )
-    # Multiple review records may exist: one average score per order.
+    # 하나의 주문에 여러 리뷰가 있을 수 있어 주문별 평균 평점을 계산합니다.
     review_agg = frames["reviews"].groupby("order_id", as_index=False).agg(
         review_score=("review_score", "mean")
     )
@@ -72,14 +72,14 @@ def prepare(frames):
         order_level["order_estimated_delivery_date"]).dt.total_seconds() / 86400
     order_level["is_late"] = order_level["delivery_delay_days"] > 0
     order_level["purchase_month"] = order_level["order_purchase_timestamp"].dt.to_period("M").astype(str)
-    # Reject time-inconsistent delivery records only for delivery metrics.
+    # 배송 완료일이 주문일보다 빠른 이상치는 배송 기간 지표에서 제외합니다.
     order_level.loc[order_level["delivery_days"] < 0, "delivery_days"] = np.nan
-    assert len(order_level) == len(orders), "Join multiplied orders"
+    assert len(order_level) == len(orders), "테이블 병합 과정에서 주문 수가 증가했습니다"
     return order_level
 
 
 def business_tables(f, order_level):
-    # Completed-order sales analysis; product revenue excludes freight.
+    # 배송 완료 주문만 매출 분석에 사용하며 상품 매출에 배송비는 포함하지 않습니다.
     delivered = order_level[order_level["order_status"] == "delivered"].copy()
     monthly = delivered.groupby("purchase_month", as_index=False).agg(
         orders=("order_id", "nunique"),
@@ -99,7 +99,7 @@ def business_tables(f, order_level):
         product_revenue=("price", "sum"), units=("order_item_id", "size"),
         orders=("order_id", "nunique")
     ).sort_values("product_revenue", ascending=False)
-    # Cohort/returning metrics are limited to observed customer order history.
+    # 재구매 분석은 관측 기간 안의 배송 완료 주문만 대상으로 합니다.
     observed = delivered.dropna(subset=["customer_unique_id", "order_purchase_timestamp"])
     customer = observed.groupby("customer_unique_id", as_index=False).agg(
         order_count=("order_id", "nunique"),
@@ -122,24 +122,24 @@ def make_charts(order_level, delivered, monthly, category, customer, out_dir):
         plt.close()
     fig, ax = plt.subplots(figsize=(11, 5))
     ax.plot(monthly["purchase_month"], monthly["product_revenue"], marker="o")
-    ax.set(title="Monthly product revenue (delivered)", xlabel="Purchase month", ylabel="BRL")
+    ax.set(title="월별 상품 매출 추이 (배송 완료 주문)", xlabel="구매 월", ylabel="BRL")
     ax.tick_params(axis="x", rotation=65)
     save("01_monthly_revenue.png")
     fig, ax = plt.subplots(figsize=(9, 6))
     top = category.head(12).iloc[::-1]
     ax.barh(top["category"], top["product_revenue"])
-    ax.set(title="Top 12 categories by product revenue", xlabel="BRL")
+    ax.set(title="상품 매출 상위 12개 카테고리", xlabel="BRL")
     save("02_category_revenue.png")
     fig, ax = plt.subplots(figsize=(8, 5))
     status = order_level["order_status"].value_counts()
     ax.bar(status.index, status.values)
-    ax.set(title="Order statuses (all orders)", ylabel="Orders")
+    ax.set(title="전체 주문의 처리 상태", ylabel="주문 건수")
     ax.tick_params(axis="x", rotation=45)
     save("03_order_status.png")
     fig, ax = plt.subplots(figsize=(8, 5))
     valid = delivered["delivery_days"].dropna()
     ax.hist(valid, bins=45)
-    ax.set(title="Delivery time (delivered orders)", xlabel="Days", ylabel="Orders")
+    ax.set(title="배송 완료 주문의 배송 소요일", xlabel="일수", ylabel="Orders")
     save("04_delivery_days.png")
     fig, ax = plt.subplots(figsize=(8, 5))
     rates = delivered.dropna(subset=["order_delivered_customer_date",
@@ -147,20 +147,20 @@ def make_charts(order_level, delivered, monthly, category, customer, out_dir):
         "customer_state")["is_late"].agg(["mean", "size"])
     rates = rates[rates["size"] >= 100].sort_values("mean", ascending=False).head(15)
     ax.bar(rates.index, rates["mean"] * 100)
-    ax.set(title="Late delivery by customer state (n>=100)", ylabel="Late delivery %")
+    ax.set(title="지역별 배송 지연율 (100건 이상)", ylabel="배송 지연율 (%)")
     save("05_late_delivery_states.png")
     fig, ax = plt.subplots(figsize=(7, 5))
     c = customer["repeat_customer"].value_counts().reindex([False, True], fill_value=0)
-    ax.bar(["One order", "2+ orders"], c.values)
-    ax.set(title="Observed customer purchase frequency", ylabel="Customers")
+    ax.bar(["1회 구매", "2회 이상 구매"], c.values)
+    ax.set(title="관측 기간의 고객 재구매 분포", ylabel="고객 수")
     save("06_repeat_customers.png")
     fig, ax = plt.subplots(figsize=(8, 5))
     valid = delivered.dropna(subset=["review_score", "delivery_delay_days"]).copy()
     valid["late"] = valid["delivery_delay_days"] > 0
     vals = valid.groupby("late")["review_score"].mean().reindex([False, True])
-    ax.bar(["On time / early", "Late"], vals.values)
-    ax.set(title="Average review score by delivery punctuality",
-           ylabel="Review score", ylim=(0, 5))
+    ax.bar(["예정일 이내 배송", "배송 지연"], vals.values)
+    ax.set(title="배송 지연 여부에 따른 평균 리뷰 점수",
+           ylabel="리뷰 점수", ylim=(0, 5))
     save("07_review_vs_lateness.png")
 
 
