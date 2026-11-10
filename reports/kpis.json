@@ -1,0 +1,12 @@
+{
+  "all_orders": 99441,
+  "delivered_orders": 96478,
+  "unique_delivered_customers": 93358,
+  "product_revenue_brl": 13221498.11,
+  "payment_total_brl": 15422461.77,
+  "mean_delivery_days": 12.56,
+  "late_delivery_rate": 0.0811,
+  "late_delivery_denominator": 96470,
+  "observed_repeat_customer_rate": 0.03,
+  "repeat_customer_denominator": 93358
+}
